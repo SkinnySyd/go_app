@@ -32,7 +32,7 @@ func main() {
 	r.LoadHTMLGlob("templates/*")
 
 	r.GET("/", authMiddleware(), func(c *gin.Context) {
-		c.String(http.StatusOK, "hello world v2")
+		c.String(http.StatusOK, "hello world v3")
 	})
 
 	r.GET("/login", func(c *gin.Context) {
