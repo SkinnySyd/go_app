@@ -6,7 +6,7 @@ node {
     }
 
     stage('Build image') {
-       app = docker.build("skinnysyddocker/golang-hello")
+       app = docker.build("skinnysyddocker/gordonauth")
     }
 
     // stage('Test image') {
