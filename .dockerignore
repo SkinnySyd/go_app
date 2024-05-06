@@ -1,0 +1,5 @@
+deployments
+templates
+.git
+.gitignore
+jenkinsfile

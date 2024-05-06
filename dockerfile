@@ -6,8 +6,11 @@ WORKDIR /app
 COPY go.mod go.sum ./
 RUN go mod download
 
-COPY *.go  ./
-COPY templates /app/templates
+COPY *.go  .
+COPY . .
+
+
+# COPY templates /app/templates
 
 RUN CGO_ENABLED=0 GOOS=linux go build -o /docker-hello
 
@@ -17,7 +20,7 @@ FROM gcr.io/distroless/base-debian11 AS release
 WORKDIR /
 
 COPY --from=build /docker-hello /docker-hello
-COPY --from=build /app/templates /templates
+# COPY --from=build /app/templates /templates
 
 
 EXPOSE 8080

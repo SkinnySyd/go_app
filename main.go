@@ -1,68 +1,75 @@
 package main
 
 import (
-	"net/http"
+	"ginhello/controllers/logincontroller"
+	"ginhello/controllers/usercontroller"
+	"ginhello/models"
 
-	"github.com/gin-contrib/sessions"
-	"github.com/gin-contrib/sessions/cookie"
+	//"ginhello/controllers/usercontroller"
+	//	"github.com/gin-contrib/sessions"
+	// "github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
-func authMiddleware() gin.HandlerFunc {
-	return func(c *gin.Context) {
-		session := sessions.Default(c)
-		isLoggedIn := session.Get("isLoggedIn")
+// func authMiddleware() gin.HandlerFunc {
+// 	return func(c *gin.Context) {
+// 		session := sessions.Default(c)
+// 		isLoggedIn := session.Get("isLoggedIn")
 
-		if isLoggedIn != true {
-			c.Redirect(http.StatusFound, "/login")
-			c.Abort()
-		} else {
-			c.Next()
-		}
-	}
-}
+// 		if isLoggedIn != true {
+// 			c.Redirect(http.StatusFound, "/login")
+// 			c.Abort()
+// 		} else {
+// 			c.Next()
+// 		}
+// 	}
+// }
 
 func main() {
 
 	r := gin.Default()
+	models.ConnectDatabase()
+	r.GET("/api/users", usercontroller.Index)
+	r.POST("/api/login", logincontroller.Login)
+	r.POST("/api/register", logincontroller.Register)
 
-	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
+	// store := cookie.NewStore([]byte("secret"))
+	// r.Use(sessions.Sessions("mysession", store))
 
-	r.LoadHTMLGlob("templates/*")
+	// r.LoadHTMLGlob("templates/*")
 
-	r.GET("/", authMiddleware(), func(c *gin.Context) {
-		c.String(http.StatusOK, "hello world v4")
-	})
+	// r.GET("/", authMiddleware(), func(c *gin.Context) {
+	// 	c.String(http.StatusOK, "hello world v4")
+	// })
 
-	r.GET("/login", func(c *gin.Context) {
-		session := sessions.Default(c)
-		isLoggedIn := session.Get("isLoggedIn")
-		if isLoggedIn == true {
-			c.Redirect(http.StatusFound, "/")
-			return
-		}
-		c.HTML(http.StatusOK, "login.tmpl", gin.H{})
-	})
+	// r.GET("/login", func(c *gin.Context) {
+	// 	session := sessions.Default(c)
+	// 	isLoggedIn := session.Get("isLoggedIn")
+	// 	if isLoggedIn == true {
+	// 		c.Redirect(http.StatusFound, "/")
+	// 		return
+	// 	}
+	// 	c.HTML(http.StatusOK, "login.tmpl", gin.H{})
+	// })
 
-	r.POST("/login", func(c *gin.Context) {
-		email := c.PostForm("email")
-		password := c.PostForm("password")
+	// r.POST("/login", func(c *gin.Context) {
+	// 	email := c.PostForm("email")
+	// 	password := c.PostForm("password")
 
-		// TODO: validate user's credentials
-		if email == "user@mail" && password == "password" {
-			// Successful login
-			session := sessions.Default(c)
-			session.Set("isLoggedIn", true)
-			session.Save()
-			c.Redirect(http.StatusFound, "/")
-		} else {
-			// Invalid credentials
-			c.HTML(http.StatusBadRequest, "login.tmpl", gin.H{
-				"errorMessage": "Invalid email or password",
-			})
-		}
-	})
+	// 	// TODO: validate user's credentials
+	// 	if email == "user@mail" && password == "password" {
+	// 		// Successful login
+	// 		session := sessions.Default(c)
+	// 		session.Set("isLoggedIn", true)
+	// 		session.Save()
+	// 		c.Redirect(http.StatusFound, "/")
+	// 	} else {
+	// 		// Invalid credentials
+	// 		c.HTML(http.StatusBadRequest, "login.tmpl", gin.H{
+	// 			"errorMessage": "Invalid email or password",
+	// 		})
+	// 	}
+	// })
 
 	r.Run()
 }
