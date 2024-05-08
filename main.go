@@ -2,39 +2,58 @@ package main
 
 import (
 	"ginhello/controllers/logincontroller"
+	"ginhello/controllers/todocontroller"
 	"ginhello/controllers/usercontroller"
 	"ginhello/models"
 
+	//"ginhello/routes"
+
 	//"ginhello/controllers/usercontroller"
-	//	"github.com/gin-contrib/sessions"
-	// "github.com/gin-contrib/sessions/cookie"
+	"net/http"
+
+	"github.com/gin-contrib/sessions"
+	"github.com/gin-contrib/sessions/cookie"
 	"github.com/gin-gonic/gin"
 )
 
-// func authMiddleware() gin.HandlerFunc {
-// 	return func(c *gin.Context) {
-// 		session := sessions.Default(c)
-// 		isLoggedIn := session.Get("isLoggedIn")
+func requiredLogin() gin.HandlerFunc {
+	return func(c *gin.Context) {
+		session := sessions.Default(c)
+		isLoggedIn := session.Get("isLoggedIn")
+		if isLoggedIn != true {
+			//c.Redirect(http.StatusFound, "/api/user/login-required")
+			c.JSON(http.StatusForbidden, gin.H{"StatusForbidden": "you need to login"})
 
-// 		if isLoggedIn != true {
-// 			c.Redirect(http.StatusFound, "/login")
-// 			c.Abort()
-// 		} else {
-// 			c.Next()
-// 		}
-// 	}
-// }
-
+			c.Abort()
+			return
+		} else {
+			c.Next()
+		}
+	}
+}
 func main() {
 
 	r := gin.Default()
+	store := cookie.NewStore([]byte("secret"))
+	r.Use(sessions.Sessions("mysession", store))
 	models.ConnectDatabase()
-	r.GET("/api/users", usercontroller.Index)
-	r.POST("/api/login", logincontroller.Login)
-	r.POST("/api/register", logincontroller.Register)
+	todoroutes := r.Group("/api/todo")
+	{
+		todoroutes.Use(requiredLogin())
+		todoroutes.GET("/all", todocontroller.FindAllByUser)
+		todoroutes.GET("/:id", todocontroller.GetATodo)
+		todoroutes.POST("/add", todocontroller.AddTodo)
+		todoroutes.DELETE("/delete/:id", todocontroller.DeleteATodo)
+	}
 
-	// store := cookie.NewStore([]byte("secret"))
-	// r.Use(sessions.Sessions("mysession", store))
+	r.GET("/api/user/users", usercontroller.Index)
+	r.POST("/api/user/login", logincontroller.Login)
+	r.POST("/api/user/register", logincontroller.Register)
+	r.POST("/api/user/logout", logincontroller.Logout)
+
+	r.GET("/user/login-required", func(c *gin.Context) {
+		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to be logged in"})
+	})
 
 	// r.LoadHTMLGlob("templates/*")
 
