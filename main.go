@@ -56,6 +56,7 @@ func main() {
 	})
 	//
 	//
+	//
 	// r.LoadHTMLGlob("templates/*")
 
 	// r.GET("/", authMiddleware(), func(c *gin.Context) {
