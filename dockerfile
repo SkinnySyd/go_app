@@ -23,7 +23,7 @@ COPY --from=build /docker-hello /docker-hello
 # COPY --from=build /app/templates /templates
 
 
-EXPOSE 8080
+EXPOSE 8088
 
 USER nonroot:nonroot
 
