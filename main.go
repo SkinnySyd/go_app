@@ -5,14 +5,19 @@ import (
 	"ginhello/controllers/todocontroller"
 	"ginhello/controllers/usercontroller"
 	"ginhello/models"
+	"time"
+
+	// "github.com/gin-contrib/cors"
 
 	//"ginhello/routes"
 
 	//"ginhello/controllers/usercontroller"
 	"net/http"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-contrib/sessions"
 	"github.com/gin-contrib/sessions/cookie"
+
 	"github.com/gin-gonic/gin"
 )
 
@@ -20,6 +25,8 @@ func requiredLogin() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		session := sessions.Default(c)
 		isLoggedIn := session.Get("isLoggedIn")
+		// isLoggedIn := true
+
 		if isLoggedIn != true {
 			//c.Redirect(http.StatusFound, "/api/user/login-required")
 			c.JSON(http.StatusForbidden, gin.H{"StatusForbidden": "you need to login"})
@@ -34,10 +41,28 @@ func requiredLogin() gin.HandlerFunc {
 func main() {
 
 	r := gin.Default()
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:     []string{"http://localhost:4200"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+		AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
+	}))
+
 	store := cookie.NewStore([]byte("secret"))
-	r.Use(sessions.Sessions("mysession", store))
+	r.Use(sessions.Sessions("currentUser", store))
 	models.ConnectDatabase()
 	todoroutes := r.Group("/api/todo")
+
+	// todoroutes.Use(cors.New(cors.Config{
+	// 	AllowOrigins:     []string{"http://localhost:4200"},
+	// 	AllowMethods:     []string{"GET", "POST", "PUT", "DELETE", "OPTIONS"},
+	// 	AllowHeaders:     []string{"Origin", "Content-Type", "Authorization"},
+	// 	ExposeHeaders:    []string{"Content-Length"},
+	// 	AllowCredentials: true,
+	// 	MaxAge:           12 * time.Hour,
+	// }))
 	{
 		todoroutes.Use(requiredLogin())
 		todoroutes.GET("/all", todocontroller.FindAllByUser)
