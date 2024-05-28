@@ -11,7 +11,7 @@ pipeline {
         stage('Clone Repository') {
             steps {
                 script {
-                    git branch: 'main', url: "${REPO_URL}"
+                    checkout scm
                 }
             }
         }
