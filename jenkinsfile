@@ -1,28 +1,55 @@
-node {
-    def app
-
-    stage('Clone repository') {
-        checkout scm
-    }
-
-    stage('Build image') {
-       app = docker.build("skinnysyddocker/gordonauth")
-    }
-
-    // stage('Test image') {
-    //     app.inside {
-    //         sh 'echo "Tests passed"'
-    //     }
-    // }
-
-    stage('Push image') { 
-        docker.withRegistry('https://registry.hub.docker.com', 'dockerhub') {
-            app.push("${env.BUILD_NUMBER}")
-        }
-    }
+pipeline {
+    agent any
     
-    stage('Trigger ManifestUpdate') {
-                echo "triggering updatemanifestjob"
-                build job: 'updatemanifestgo', parameters: [string(name: 'DOCKERTAG', value: env.BUILD_NUMBER)]
+    environment {
+        DOCKER_USER = credentials('dockerhub')
+        DOCKER_PAT = credentials('dockertoken')
+    }
+
+ 
+    stages {
+        stage('Clone Repository') {
+            steps {
+                script {
+                    git branch: 'main', url: "${REPO_URL}"
+                }
+            }
         }
+        stage('output') {
+            steps {
+                script {
+                    echo "Cloning repository into workspace: ${WORKSPACE}" // to locate workspace
+                }
+            }
+        }
+        
+        stage('Login to Docker Hub') {
+            steps {
+                script {
+                    withCredentials([usernamePassword(credentialsId: 'dockerhub', usernameVariable: 'USERNAME', passwordVariable: 'GIT_PASSWORD')]) {
+                        echo "Username: ${USERNAME}"
+                        sh 'echo "$DOCKER_PAT" | docker login --username $USERNAME --password-stdin'                    }
+                }               
+            }
+        }
+        
+        stage('Create Buildx Builder') {
+            steps {
+                // sh 'docker buildx create --use --driver cloud mybuilder'
+                // sh 'docker buildx create --use --driver docker localbuilder'
+                // sh 'docker buildx use cloud-skinnysyddocker-skinnysydbuilder'
+                sh 'docker buildx use default'
+            }
+        }
+
+        stage('Build and Push Image') {
+            steps {
+                script {
+                    // sh 'docker buildx build --platform linux/amd64,linux/arm64 --push --tag "$DOCKER_ORG/$IMAGE_NAME" .'
+                    sh 'docker buildx build --platform linux/amd64 --push --tag "$DOCKER_ORG/$IMAGE_NAME" .'
+
+                }
+            }
+        }
+    }
 }
