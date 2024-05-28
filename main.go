@@ -80,8 +80,6 @@ func main() {
 		c.JSON(http.StatusUnauthorized, gin.H{"error": "You need to be logged in"})
 	})
 	//
-	//
-	//
 	// r.LoadHTMLGlob("templates/*")
 
 	// r.GET("/", authMiddleware(), func(c *gin.Context) {
